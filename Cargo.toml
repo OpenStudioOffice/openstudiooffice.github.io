@@ -1,0 +1,27 @@
+[package]
+name = "open_studio_office"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.76"
+description = "Open Studio Office - an open-source office suite in pure Rust (spreadsheet first)"
+
+[dependencies]
+eframe = { version = "0.29", default-features = false, features = [
+    "accesskit",
+    "default_fonts",
+    "glow",
+    "persistence",
+] }
+log = "0.4"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+env_logger = "0.11"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen-futures = "0.4"
+web-sys = "0.3"
+
+[profile.release]
+opt-level = 2
+lto = true
+codegen-units = 1
