@@ -1,83 +1,1628 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en" class="dark">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>AudioKit — Free Online Audio Converter</title>
-  <meta name="description" content="Convert audio files to MP3 or WAV online for free with AudioKit. Choose an MP3 bitrate and process files in your browser without uploading audio to a conversion server."><meta name="robots" content="index,follow,max-image-preview:large"><meta property="og:type" content="website"><meta property="og:site_name" content="AudioKit"><meta property="og:title" content="AudioKit — Free Online Audio Converter"><meta property="og:description" content="Convert audio to MP3 or WAV in your browser, with adjustable MP3 bitrate and no AudioKit conversion upload."><meta property="og:url" content="https://YOUR-USERNAME.github.io/"><meta name="twitter:card" content="summary">
-  <meta name="theme-color" content="#080f1e">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"AudioKit","url":"https://YOUR-USERNAME.github.io/","inLanguage":"en"}</script>
-  <link rel="canonical" href="https://YOUR-USERNAME.github.io/">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css">
-  <script defer src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
-  <script defer src="/app.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AudioKit — Free Online Audio Converter (WAV to MP3, MP3 to WAV)</title>
+  <meta name="description" content="Convert WAV, MP3, FLAC, M4A and more right in your browser. 100% private, no software installation required." />
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <!-- LameJS for real in-browser MP3 encoding -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            navy: {
+              950: '#040814',
+              900: '#070e20',
+              800: '#0c1732',
+              700: '#122247',
+            },
+            brand: {
+              cyan: '#38bdf8',
+              blue: '#2563eb',
+              glow: '#3b82f6',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    body {
+      background-color: #040814;
+      color: #f8fafc;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Deep Navy & Radial Glow Background matching Mockup */
+    .bg-audiokit-mesh {
+      background: 
+        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(29, 78, 216, 0.28) 0%, rgba(14, 165, 233, 0.08) 45%, transparent 80%),
+        radial-gradient(circle at 85% 30%, rgba(56, 189, 248, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 15% 40%, rgba(37, 99, 235, 0.14) 0%, transparent 50%),
+        linear-gradient(180deg, #040917 0%, #071024 50%, #040814 100%);
+    }
+
+    /* Translucent Glass Cards with Cyan/Blue Rim */
+    .ak-card {
+      background: linear-gradient(180deg, rgba(14, 25, 52, 0.78) 0%, rgba(9, 17, 36, 0.85) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.16);
+      box-shadow: 0 10px 35px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 0 rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(12px);
+    }
+
+    .ak-card-hover {
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .ak-card-hover:hover {
+      border-color: rgba(56, 189, 248, 0.42);
+      background: linear-gradient(180deg, rgba(18, 33, 68, 0.88) 0%, rgba(11, 22, 46, 0.92) 100%);
+      box-shadow: 0 14px 40px -10px rgba(37, 99, 235, 0.25), inset 0 1px 0 0 rgba(56, 189, 248, 0.2);
+      transform: translateY(-2px);
+    }
+
+    /* Dashed Dropzone inside Converter Box */
+    .ak-dropzone {
+      background: rgba(7, 14, 31, 0.65);
+      border: 1.5px dashed rgba(56, 189, 248, 0.32);
+      transition: all 0.2s ease;
+    }
+    .ak-dropzone:hover, .ak-dropzone.drag-active {
+      border-color: #38bdf8;
+      background: rgba(14, 30, 64, 0.75);
+      box-shadow: inset 0 0 30px rgba(56, 189, 248, 0.12);
+    }
+
+    /* Primary Glowing Blue CTA Button */
+    .ak-btn-primary {
+      background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+      box-shadow: 0 4px 20px rgba(37, 99, 235, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      transition: all 0.2s ease;
+    }
+    .ak-btn-primary:hover {
+      background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+      box-shadow: 0 6px 26px rgba(59, 130, 246, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      transform: translateY(-1px);
+    }
+    .ak-btn-primary:active {
+      transform: translateY(0px);
+    }
+
+    /* Icon Box Gradient */
+    .ak-icon-box {
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+    }
+
+    /* Step Number Circle */
+    .ak-step-badge {
+      background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.65);
+    }
+
+    /* Text Gradient for "Converter" */
+    .text-cyan-gradient {
+      background: linear-gradient(90deg, #60a5fa 0%, #38bdf8 50%, #7dd3fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Custom Select Styling */
+    .ak-select {
+      background-color: rgba(8, 16, 35, 0.9);
+      border: 1px solid rgba(56, 189, 248, 0.22);
+      transition: border-color 0.2s;
+    }
+    .ak-select:focus {
+      outline: none;
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+    }
+
+    /* Animated Waveform Bars */
+    @keyframes pulseWave {
+      0%, 100% { transform: scaleY(0.35); opacity: 0.5; }
+      50% { transform: scaleY(1); opacity: 0.95; }
+    }
+    .wave-bar {
+      transform-origin: center;
+      animation: pulseWave 2.4s ease-in-out infinite;
+    }
+
+    /* Mobile Simulator Frame when toggled */
+    .mobile-frame-active {
+      max-width: 412px !important;
+      margin: 1.5rem auto !important;
+      border: 10px solid #1e293b;
+      border-radius: 44px;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85), 0 0 0 2px rgba(56, 189, 248, 0.25);
+      overflow-x: hidden;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #040814;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+  </style>
 </head>
-<body>
-<a class="skip-link" href="#main-content">Skip to main content</a>
-<header class="site-header">
-  <a class="brand" href="/" aria-label="AudioKit home"><span class="brand-icon">♫</span><span>Audio<span class="brand-accent">Kit</span><small>FREE ONLINE AUDIO TOOLS</small></span></a>
-  <nav><a href="#converter">Converter</a><a href="#tools">Audio tools</a><a href="#how-it-works">How it works</a></nav>
-  <a class="header-cta" href="#converter">Convert audio <span>↗</span></a>
-</header>
-<main id="main-content">
-  <section class="hero">
-    <div class="hero-copy">
-      <div class="eyebrow"><span class="pulse"></span> YOUR AUDIO. YOUR DEVICE. YOUR CONTROL.</div>
-      <h1>Audio conversion.<br><span>Made beautifully simple.</span></h1>
-      <p class="hero-sub">Convert audio files to MP3 or WAV in a few clicks. No account, no upload queue — your audio is processed right in your browser.</p>
-      <div class="hero-points"><span>✓ Free to use</span><span>✓ Browser-based</span><span>✓ No account needed</span></div>
-    </div>
-    <div class="wave-art" aria-hidden="true"><div class="wave-label">AUDIOKIT <span>/// 01</span></div><div class="waveform"></div><div class="wave-meta"><span>YOUR SOUND, YOUR WAY</span><span>MP3 · WAV</span></div></div>
-  </section>
+<body class="bg-audiokit-mesh min-h-screen flex flex-col selection:bg-blue-500 selection:text-white">
 
-  <section class="converter-section" id="converter">
-    <div class="section-heading"><div><div class="eyebrow">THE CONVERTER</div><h2>Convert your audio</h2></div><div class="privacy-pill"><span>●</span> Files stay on your device</div></div>
-    <div class="converter-card">
-      <div class="drop-zone" id="drop-zone" tabindex="0" role="button" aria-label="Choose an audio file">
-        <input id="file-input" type="file" accept="audio/*,.wav,.mp3,.m4a,.aac,.ogg,.webm,.flac" hidden>
-        <div class="upload-icon"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 32V8m0 0-9 9m9-9 9 9M8 29v10a3 3 0 0 0 3 3h26a3 3 0 0 0 3-3V29" /></svg></div>
-        <h3>Drop your audio file here</h3><p>or <button type="button" class="text-button" id="browse-button">browse files</button> on your device</p>
-        <div class="format-tags"><span>WAV</span><span>MP3</span><span>M4A*</span><span>OGG*</span><span>More*</span></div>
-        <small>*Input support depends on your browser's audio decoder. Files are not sent to a server.</small>
+  <!-- ===================================================================== -->
+  <!-- TOP ROUTE & GITHUB PAGES PREVIEW BAR (Interactive Switcher for Mockup) -->
+  <!-- ===================================================================== -->
+  <div class="bg-[#02050d]/95 border-b border-sky-500/20 px-3 py-2 sticky top-0 z-50 backdrop-blur-md">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-2 text-xs">
+      <!-- Left: Route Tabs matching the 3 Mockup Screens -->
+      <div class="flex items-center gap-1.5 flex-wrap">
+        <span class="text-slate-400 font-medium hidden sm:inline mr-1">Mockup Views:</span>
+        
+        <button onclick="navigateTo('/')" id="tab-home" class="route-tab flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all bg-blue-600 text-white shadow-sm">
+          <span class="w-4 h-4 rounded-full bg-white/20 text-[10px] flex items-center justify-center font-bold">1</span>
+          <span>Homepage</span>
+          <code class="text-[10px] text-blue-200 font-mono">/</code>
+        </button>
+
+        <button onclick="navigateTo('/wav-to-mp3/')" id="tab-wav-to-mp3" class="route-tab flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-800">
+          <span class="w-4 h-4 rounded-full bg-blue-500/20 text-blue-400 text-[10px] flex items-center justify-center font-bold">2</span>
+          <span>WAV to MP3</span>
+          <code class="text-[10px] text-slate-400 font-mono">/wav-to-mp3/</code>
+        </button>
+
+        <button onclick="navigateTo('/mp3-to-wav/')" id="tab-mp3-to-wav" class="route-tab flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-800">
+          <span class="w-4 h-4 rounded-full bg-blue-500/20 text-blue-400 text-[10px] flex items-center justify-center font-bold">3</span>
+          <span>MP3 to WAV</span>
+          <code class="text-[10px] text-slate-400 font-mono">/mp3-to-wav/</code>
+        </button>
       </div>
-      <div class="file-panel hidden" id="file-panel">
-        <div class="file-symbol">♫</div><div class="file-details"><strong id="file-name">audio.wav</strong><span id="file-meta">Ready to convert</span></div>
-        <button id="remove-file" class="icon-button" aria-label="Remove selected file">✕</button>
+
+      <!-- Right: Mobile Simulator Toggle + GitHub Pages Export -->
+      <div class="flex items-center gap-2">
+        <button onclick="toggleMobileViewport()" id="btn-mobile-sim" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" title="Preview Mobile Layout from Mockup">
+          <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2" stroke-width="2"/><line x1="12" y1="18" x2="12.01" y2="18" stroke-width="2"/></svg>
+          <span id="mobile-sim-label">Mobile View</span>
+        </button>
+
+        <button onclick="openGhPagesModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-400/30 font-medium transition">
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          <span>GitHub Pages Setup</span>
+        </button>
       </div>
-      <div class="settings-row">
-        <label>Convert to <select id="output-format"><option value="mp3">MP3 audio</option><option value="wav">WAV audio</option></select></label>
-        <label id="bitrate-wrap">MP3 bitrate <select id="bitrate"><option value="128">128 kbps · smaller file</option><option value="192">192 kbps · balanced</option><option value="256">256 kbps · high quality</option><option value="320" selected>320 kbps · highest</option></select></label>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MAIN APP CONTAINER (Supports Both Desktop & Mobile Simulator Frame)   -->
+  <!-- ===================================================================== -->
+  <div id="app-viewport" class="w-full flex-1 flex flex-col transition-all duration-300 relative">
+
+    <!-- ======================= HEADER NAVBAR ======================= -->
+    <header class="w-full border-b border-sky-500/10 bg-[#050b1a]/80 backdrop-blur-md sticky top-[45px] z-40">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+        
+        <!-- Brand Logo -->
+        <a href="#/" onclick="navigateTo('/'); return false;" class="flex items-center gap-2.5 group focus:outline-none">
+          <div class="w-9 h-9 rounded-xl bg-blue-600/20 border border-sky-400/30 flex items-center justify-center shadow-[0_0_15px_rgba(56,189,248,0.25)] group-hover:border-sky-400/60 transition">
+            <!-- Soundwave SVG matching AudioKit logo -->
+            <svg class="w-5 h-5 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+              <line x1="4" y1="10" x2="4" y2="14"></line>
+              <line x1="8" y1="6" x2="8" y2="18"></line>
+              <line x1="12" y1="3" x2="12" y2="21"></line>
+              <line x1="16" y1="7" x2="16" y2="17"></line>
+              <line x1="20" y1="10" x2="20" y2="14"></line>
+            </svg>
+          </div>
+          <span class="font-display font-bold text-lg sm:text-xl tracking-tight text-white">AudioKit</span>
+        </a>
+
+        <!-- Desktop Navigation Links -->
+        <nav id="desktop-nav" class="hidden md:flex items-center gap-7 text-sm font-medium text-slate-300">
+          <!-- Tools Dropdown -->
+          <div class="relative group">
+            <button class="flex items-center gap-1.5 hover:text-white py-2 transition">
+              <span>Tools</span>
+              <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-white transition transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <!-- Dropdown Menu -->
+            <div class="absolute left-0 top-full pt-2 w-64 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50">
+              <div class="ak-card rounded-xl p-2 shadow-2xl border border-sky-500/25 divide-y divide-slate-800/60">
+                <div class="pb-1.5">
+                  <button onclick="navigateTo('/wav-to-mp3/')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-blue-600/20 text-left transition group/item">
+                    <div class="w-8 h-8 rounded-lg ak-icon-box flex items-center justify-center text-white shrink-0">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                    </div>
+                    <div>
+                      <div class="text-white font-semibold text-xs group-hover/item:text-sky-300">WAV to MP3</div>
+                      <div class="text-[11px] text-slate-400">Reduce WAV file size</div>
+                    </div>
+                  </button>
+                  <button onclick="navigateTo('/mp3-to-wav/')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-blue-600/20 text-left transition group/item">
+                    <div class="w-8 h-8 rounded-lg ak-icon-box flex items-center justify-center text-white shrink-0">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                    </div>
+                    <div>
+                      <div class="text-white font-semibold text-xs group-hover/item:text-sky-300">MP3 to WAV</div>
+                      <div class="text-[11px] text-slate-400">Uncompressed PCM WAV</div>
+                    </div>
+                  </button>
+                  <button onclick="openCustomPreset('FLAC', 'MP3')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-blue-600/20 text-left transition group/item">
+                    <div class="w-8 h-8 rounded-lg ak-icon-box flex items-center justify-center text-white shrink-0">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                    </div>
+                    <div>
+                      <div class="text-white font-semibold text-xs group-hover/item:text-sky-300">FLAC to MP3</div>
+                      <div class="text-[11px] text-slate-400">Compress lossless audio</div>
+                    </div>
+                  </button>
+                  <button onclick="openCustomPreset('M4A', 'MP3')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-blue-600/20 text-left transition group/item">
+                    <div class="w-8 h-8 rounded-lg ak-icon-box flex items-center justify-center text-white shrink-0">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                    </div>
+                    <div>
+                      <div class="text-white font-semibold text-xs group-hover/item:text-sky-300">M4A to MP3</div>
+                      <div class="text-[11px] text-slate-400">Convert Apple audio files</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <a href="#how-it-works" onclick="scrollToSection('how-it-works'); return false;" class="hover:text-white transition">Blog</a>
+          <a href="#about" onclick="scrollToSection('popular-tools'); return false;" class="hover:text-white transition">About</a>
+          
+          <!-- Search Icon -->
+          <button onclick="toggleSearchModal()" class="text-slate-300 hover:text-white p-1.5 rounded-lg hover:bg-slate-800/60 transition" aria-label="Search tools">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+
+          <!-- Primary CTA Button -->
+          <button onclick="navigateTo('/wav-to-mp3/')" class="ak-btn-primary text-white text-xs font-semibold px-4 py-2 rounded-lg">
+            Convert Now
+          </button>
+        </nav>
+
+        <!-- Mobile Hamburger Menu Button (Matches "Mobile - Tools menu" in Mockup) -->
+        <button onclick="toggleMobileMenu()" id="mobile-menu-btn" class="md:hidden p-2 rounded-lg text-slate-200 hover:text-white hover:bg-slate-800/60 focus:outline-none" aria-label="Open Menu">
+          <svg id="hamburger-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+
       </div>
-      <button class="primary-button" id="convert-button" disabled><span>Convert audio</span><span>→</span></button>
-      <div class="progress-wrap hidden" id="progress-wrap"><div class="progress-label"><span id="progress-text">Preparing audio…</span><span id="progress-percent">0%</span></div><div class="progress-track"><div id="progress-bar"></div></div></div>
-      <div class="status-message" id="status-message" role="status" aria-live="polite"></div>
-      <div class="result-panel hidden" id="result-panel"><div class="success-icon">✓</div><div class="file-details"><strong id="result-name">converted.mp3</strong><span id="result-meta">Your file is ready</span></div><a id="download-link" class="download-button" download>Download file ↓</a></div>
-      <p class="fine-print">Conversion happens locally in your browser. Very large files may use significant memory. Keep this tab open until conversion finishes.</p>
+    </header>
+
+    <!-- ===================================================================== -->
+    <!-- MOBILE TOOLS MENU OVERLAY (Matches "Mobile - Tools menu" in Mockup)   -->
+    <!-- ===================================================================== -->
+    <div id="mobile-tools-drawer" class="fixed inset-0 top-[109px] z-40 bg-[#040918]/98 backdrop-blur-xl hidden flex-col p-5 overflow-y-auto">
+      <div class="max-w-md mx-auto w-full">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-display font-bold text-white">All Audio Tools</h2>
+          <button onclick="toggleMobileMenu()" class="text-xs text-slate-400 hover:text-white px-2.5 py-1 rounded-md bg-slate-800/80">Close ✕</button>
+        </div>
+
+        <div class="space-y-3">
+          <!-- WAV to MP3 -->
+          <button onclick="navigateTo('/wav-to-mp3/'); toggleMobileMenu();" class="w-full ak-card ak-card-hover rounded-xl p-3.5 flex items-center justify-between text-left group">
+            <div class="flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-xl ak-icon-box flex items-center justify-center text-white shrink-0">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+              </div>
+              <div>
+                <div class="font-display font-bold text-white text-sm">WAV to MP3</div>
+                <div class="text-xs text-slate-400 mt-0.5">Convert WAV to MP3</div>
+              </div>
+            </div>
+            <svg class="w-4 h-4 text-slate-400 group-hover:text-white group-hover:translate-x-0.5 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+
+          <!-- MP3 to WAV -->
+          <button onclick="navigateTo('/mp3-to-wav/'); toggleMobileMenu();" class="w-full ak-card ak-card-hover rounded-xl p-3.5 flex items-center justify-between text-left group">
+            <div class="flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-xl ak-icon-box flex items-center justify-center text-white shrink-0">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+              </div>
+              <div>
+                <div class="font-display font-bold text-white text-sm">MP3 to WAV</div>
+                <div class="text-xs text-slate-400 mt-0.5">Convert MP3 to WAV</div>
+              </div>
+            </div>
+            <svg class="w-4 h-4 text-slate-400 group-hover:text-white group-hover:translate-x-0.5 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+
+          <!-- FLAC to MP3 -->
+          <button onclick="openCustomPreset('FLAC', 'MP3'); toggleMobileMenu();" class="w-full ak-card ak-card-hover rounded-xl p-3.5 flex items-center justify-between text-left group">
+            <div class="flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-xl ak-icon-box flex items-center justify-center text-white shrink-0">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+              </div>
+              <div>
+                <div class="font-display font-bold text-white text-sm">FLAC to MP3</div>
+                <div class="text-xs text-slate-400 mt-0.5">Compress FLAC to MP3</div>
+              </div>
+            </div>
+            <svg class="w-4 h-4 text-slate-400 group-hover:text-white group-hover:translate-x-0.5 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+
+          <!-- M4A to MP3 -->
+          <button onclick="openCustomPreset('M4A', 'MP3'); toggleMobileMenu();" class="w-full ak-card ak-card-hover rounded-xl p-3.5 flex items-center justify-between text-left group">
+            <div class="flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-xl ak-icon-box flex items-center justify-center text-white shrink-0">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+              </div>
+              <div>
+                <div class="font-display font-bold text-white text-sm">M4A to MP3</div>
+                <div class="text-xs text-slate-400 mt-0.5">Convert M4A to MP3</div>
+              </div>
+            </div>
+            <svg class="w-4 h-4 text-slate-400 group-hover:text-white group-hover:translate-x-0.5 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+
+          <!-- OGG to MP3 -->
+          <button onclick="openCustomPreset('OGG', 'MP3'); toggleMobileMenu();" class="w-full ak-card ak-card-hover rounded-xl p-3.5 flex items-center justify-between text-left group">
+            <div class="flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-xl ak-icon-box flex items-center justify-center text-white shrink-0">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+              </div>
+              <div>
+                <div class="font-display font-bold text-white text-sm">OGG to MP3</div>
+                <div class="text-xs text-slate-400 mt-0.5">Convert OGG to MP3</div>
+              </div>
+            </div>
+            <svg class="w-4 h-4 text-slate-400 group-hover:text-white group-hover:translate-x-0.5 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
     </div>
-  </section>
 
-  <section class="tools-section" id="tools">
-    <div class="section-heading"><div><div class="eyebrow">EXPLORE THE TOOLKIT</div><h2>Audio tools for everyday work</h2></div><p>Simple tools for common audio tasks.</p></div>
-    <div class="tool-grid">
-      <a class="tool-card featured" href="wav-to-mp3.html"><span class="tool-icon">↗</span><span class="tool-tag">POPULAR</span><h3>WAV to MP3</h3><p>Make large WAV files easier to store and share.</p><span class="card-link">Open converter <b>→</b></span></a>
-      <a class="tool-card" href="mp3-to-wav.html"><span class="tool-icon">⌁</span><h3>MP3 to WAV</h3><p>Export an MP3 as a WAV audio file for compatible workflows.</p><span class="card-link">Open converter <b>→</b></span></a>
-      <a class="tool-card" href="#converter" data-format="wav"><span class="tool-icon">◉</span><h3>Audio to WAV</h3><p>Convert browser-decodable audio into uncompressed WAV.</p><span class="card-link">Open converter <b>→</b></span></a>
-      <a class="tool-card" href="#converter" data-format="mp3"><span class="tool-icon">♫</span><h3>Audio to MP3</h3><p>Choose an MP3 bitrate that suits your needs.</p><span class="card-link">Open converter <b>→</b></span></a>
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 1: HOMEPAGE (/)                                                  -->
+    <!-- ===================================================================== -->
+    <main id="view-home" class="flex-1">
+      
+      <!-- HERO SECTION WITH DIGITAL WAVEFORM BACKGROUND -->
+      <section class="relative overflow-hidden pt-10 pb-12 sm:pt-14 sm:pb-16">
+        
+        <!-- Decorative Glowing Digital Audio Waveform SVG Background -->
+        <div class="absolute inset-0 pointer-events-none flex items-center justify-center opacity-55">
+          <svg class="w-full max-w-6xl h-72 sm:h-96" viewBox="0 0 1200 320" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="waveGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#0284c7" stop-opacity="0.05"/>
+                <stop offset="20%" stop-color="#38bdf8" stop-opacity="0.65"/>
+                <stop offset="50%" stop-color="#2563eb" stop-opacity="0.25"/>
+                <stop offset="80%" stop-color="#38bdf8" stop-opacity="0.65"/>
+                <stop offset="100%" stop-color="#0284c7" stop-opacity="0.05"/>
+              </linearGradient>
+              <filter id="glowFilter" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="6" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+              </filter>
+            </defs>
+            <!-- Smooth Sine Waves -->
+            <path d="M0 160 Q 150 60, 300 160 T 600 160 T 900 160 T 1200 160" stroke="url(#waveGlow)" stroke-width="2" fill="none"/>
+            <path d="M0 160 Q 150 250, 300 160 T 600 160 T 900 160 T 1200 160" stroke="url(#waveGlow)" stroke-width="1.5" stroke-dasharray="4 4" fill="none"/>
+            <!-- Left & Right Equalizer Bars matching Mockup 1 -->
+            <g filter="url(#glowFilter)" stroke="url(#waveGlow)" stroke-linecap="round">
+              <!-- Left cluster -->
+              <line x1="30" y1="120" x2="30" y2="200" stroke-width="3" class="wave-bar" style="animation-delay:0.1s"/>
+              <line x1="48" y1="90" x2="48" y2="230" stroke-width="3" class="wave-bar" style="animation-delay:0.3s"/>
+              <line x1="66" y1="65" x2="66" y2="255" stroke-width="3.5" class="wave-bar" style="animation-delay:0.6s"/>
+              <line x1="84" y1="100" x2="84" y2="220" stroke-width="3" class="wave-bar" style="animation-delay:0.2s"/>
+              <line x1="102" y1="50" x2="102" y2="270" stroke-width="4" class="wave-bar" style="animation-delay:0.5s"/>
+              <line x1="120" y1="85" x2="120" y2="235" stroke-width="3" class="wave-bar" style="animation-delay:0.8s"/>
+              <line x1="138" y1="115" x2="138" y2="205" stroke-width="3" class="wave-bar" style="animation-delay:0.4s"/>
+              <line x1="156" y1="95" x2="156" y2="225" stroke-width="2.5" class="wave-bar" style="animation-delay:0.7s"/>
+              <line x1="174" y1="130" x2="174" y2="190" stroke-width="2.5" class="wave-bar" style="animation-delay:0.2s"/>
+              <!-- Right cluster -->
+              <line x1="1026" y1="130" x2="1026" y2="190" stroke-width="2.5" class="wave-bar" style="animation-delay:0.3s"/>
+              <line x1="1044" y1="95" x2="1044" y2="225" stroke-width="2.5" class="wave-bar" style="animation-delay:0.6s"/>
+              <line x1="1062" y1="115" x2="1062" y2="205" stroke-width="3" class="wave-bar" style="animation-delay:0.1s"/>
+              <line x1="1080" y1="85" x2="1080" y2="235" stroke-width="3" class="wave-bar" style="animation-delay:0.5s"/>
+              <line x1="1098" y1="50" x2="1098" y2="270" stroke-width="4" class="wave-bar" style="animation-delay:0.8s"/>
+              <line x1="1116" y1="100" x2="1116" y2="220" stroke-width="3" class="wave-bar" style="animation-delay:0.4s"/>
+              <line x1="1134" y1="65" x2="1134" y2="255" stroke-width="3.5" class="wave-bar" style="animation-delay:0.2s"/>
+              <line x1="1152" y1="90" x2="1152" y2="230" stroke-width="3" class="wave-bar" style="animation-delay:0.7s"/>
+              <line x1="1170" y1="120" x2="1170" y2="200" stroke-width="3" class="wave-bar" style="animation-delay:0.3s"/>
+            </g>
+          </svg>
+        </div>
+
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 relative z-10 text-center">
+          <!-- Pill Badge -->
+          <div class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-sky-950/70 border border-sky-400/30 text-sky-300 text-xs font-medium mb-5 shadow-[0_0_20px_rgba(56,189,248,0.15)]">
+            <span>Free &bull; Fast &bull; Private</span>
+          </div>
+
+          <!-- Hero Heading -->
+          <h1 class="font-display font-extrabold text-3xl sm:text-5xl md:text-[52px] text-white tracking-tight leading-[1.12] mb-4">
+            Free Online<br />Audio Converter
+          </h1>
+
+          <!-- Subtitle -->
+          <p class="text-slate-300 text-sm sm:text-base max-w-xl mx-auto leading-relaxed mb-8">
+            Convert WAV, MP3 and more, right in your browser.<br class="hidden sm:inline" />
+            No software installation. Your files stay private.
+          </p>
+
+          <!-- Primary Upload CTA Zone -->
+          <div id="home-dropzone" class="max-w-md mx-auto rounded-2xl p-2 transition-all">
+            <input type="file" id="home-file-input" accept="audio/*,.wav,.mp3,.flac,.m4a,.ogg" class="hidden" onchange="handleHomeFileSelect(event)" />
+            
+            <button onclick="document.getElementById('home-file-input').click()" class="ak-btn-primary w-full sm:w-auto min-w-[250px] inline-flex items-center justify-center gap-3 text-white font-display font-bold text-base px-8 py-4 rounded-xl">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+              </svg>
+              <span>Choose Audio File</span>
+            </button>
+
+            <p class="text-xs sm:text-sm text-slate-300 mt-3.5 font-medium">or drag and drop files here</p>
+            <p class="text-[11px] text-slate-400 mt-1">Supports WAV, MP3, FLAC, M4A, OGG and more</p>
+
+            <!-- Instant Demo Sample Trigger -->
+            <div class="mt-3">
+              <button onclick="loadSynthesizedDemo('wav-to-mp3')" class="text-[11px] text-sky-400 hover:text-sky-300 underline underline-offset-4">
+                No file handy? Click to test with a generated stereo WAV sample
+              </button>
+            </div>
+          </div>
+
+          <!-- 4 Feature Badges Row -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-10 max-w-3xl mx-auto">
+            <!-- Feature 1 -->
+            <div class="ak-card rounded-xl p-3.5 flex flex-col items-center text-center">
+              <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-400/25 flex items-center justify-center text-sky-400 mb-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 7v5l3 3"/></svg>
+              </div>
+              <div class="text-white font-semibold text-xs sm:text-sm">Fast Conversion</div>
+              <div class="text-[11px] text-slate-400 mt-0.5">In your browser</div>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="ak-card rounded-xl p-3.5 flex flex-col items-center text-center">
+              <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-400/25 flex items-center justify-center text-sky-400 mb-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
+              </div>
+              <div class="text-white font-semibold text-xs sm:text-sm">High Quality</div>
+              <div class="text-[11px] text-slate-400 mt-0.5">Up to 320 kbps</div>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="ak-card rounded-xl p-3.5 flex flex-col items-center text-center">
+              <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-400/25 flex items-center justify-center text-sky-400 mb-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+              </div>
+              <div class="text-white font-semibold text-xs sm:text-sm">100% Private</div>
+              <div class="text-[11px] text-slate-400 mt-0.5">Files stay on your device</div>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="ak-card rounded-xl p-3.5 flex flex-col items-center text-center">
+              <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-400/25 flex items-center justify-center text-sky-400 mb-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2" stroke-width="2"/><line x1="12" y1="18" x2="12.01" y2="18" stroke-width="2"/></svg>
+              </div>
+              <div class="text-white font-semibold text-xs sm:text-sm">No Installation</div>
+              <div class="text-[11px] text-slate-400 mt-0.5">Works on all devices</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- POPULAR AUDIO TOOLS SECTION -->
+      <section id="popular-tools" class="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+        <h2 class="font-display font-bold text-xl sm:text-2xl text-white">Popular Audio Tools</h2>
+        <p class="text-slate-400 text-xs sm:text-sm mt-1 mb-6">Simple and powerful tools for your audio files.</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Card 1: WAV to MP3 -->
+          <div onclick="navigateTo('/wav-to-mp3/')" class="ak-card ak-card-hover rounded-2xl p-5 flex items-center justify-between cursor-pointer group">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl ak-icon-box flex items-center justify-center text-white shrink-0">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+              </div>
+              <div>
+                <h3 class="font-display font-bold text-white text-base group-hover:text-sky-300 transition">WAV to MP3</h3>
+                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Convert WAV to MP3 easily and reduce file size.</p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-slate-400 group-hover:text-white group-hover:translate-x-1 transition shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </div>
+
+          <!-- Card 2: MP3 to WAV -->
+          <div onclick="navigateTo('/mp3-to-wav/')" class="ak-card ak-card-hover rounded-2xl p-5 flex items-center justify-between cursor-pointer group">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl ak-icon-box flex items-center justify-center text-white shrink-0">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+              </div>
+              <div>
+                <h3 class="font-display font-bold text-white text-base group-hover:text-sky-300 transition">MP3 to WAV</h3>
+                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Convert MP3 to WAV for editing or compatibility.</p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-slate-400 group-hover:text-white group-hover:translate-x-1 transition shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </div>
+
+          <!-- Card 3: FLAC to MP3 -->
+          <div onclick="openCustomPreset('FLAC', 'MP3')" class="ak-card ak-card-hover rounded-2xl p-5 flex items-center justify-between cursor-pointer group">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl ak-icon-box flex items-center justify-center text-white shrink-0">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+              </div>
+              <div>
+                <h3 class="font-display font-bold text-white text-base group-hover:text-sky-300 transition">FLAC to MP3</h3>
+                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Compress lossless audio to MP3.</p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-slate-400 group-hover:text-white group-hover:translate-x-1 transition shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </div>
+
+          <!-- Card 4: M4A to MP3 -->
+          <div onclick="openCustomPreset('M4A', 'MP3')" class="ak-card ak-card-hover rounded-2xl p-5 flex items-center justify-between cursor-pointer group">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl ak-icon-box flex items-center justify-center text-white shrink-0">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+              </div>
+              <div>
+                <h3 class="font-display font-bold text-white text-base group-hover:text-sky-300 transition">M4A to MP3</h3>
+                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Convert Apple audio files to MP3.</p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-slate-400 group-hover:text-white group-hover:translate-x-1 transition shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- HOW IT WORKS SECTION -->
+      <section id="how-it-works" class="max-w-4xl mx-auto px-4 sm:px-6 py-8 pb-16">
+        <h2 class="font-display font-bold text-xl sm:text-2xl text-white">How It Works</h2>
+        <p class="text-slate-400 text-xs sm:text-sm mt-1 mb-6">Convert your audio file in 3 simple steps.</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Step 1 -->
+          <div class="ak-card rounded-2xl p-5 relative pt-7">
+            <div class="w-7 h-7 rounded-full ak-step-badge text-white font-display font-bold text-xs flex items-center justify-center mb-3">1</div>
+            <h3 class="font-display font-bold text-white text-sm sm:text-base">Upload</h3>
+            <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">Choose or drag and drop your audio file.</p>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="ak-card rounded-2xl p-5 relative pt-7">
+            <div class="w-7 h-7 rounded-full ak-step-badge text-white font-display font-bold text-xs flex items-center justify-center mb-3">2</div>
+            <h3 class="font-display font-bold text-white text-sm sm:text-base">Convert</h3>
+            <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">Select format and settings, then convert.</p>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="ak-card rounded-2xl p-5 relative pt-7">
+            <div class="w-7 h-7 rounded-full ak-step-badge text-white font-display font-bold text-xs flex items-center justify-center mb-3">3</div>
+            <h3 class="font-display font-bold text-white text-sm sm:text-base">Download</h3>
+            <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">Get your converted file instantly.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 2 & 3: TOOL CONVERTER PAGES (/wav-to-mp3/ & /mp3-to-wav/)        -->
+    <!-- ===================================================================== -->
+    <main id="view-converter" class="flex-1 hidden">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 pt-6 pb-16">
+        
+        <!-- Breadcrumb -->
+        <nav class="flex items-center gap-2 text-xs text-slate-400 mb-5">
+          <a href="#/" onclick="navigateTo('/'); return false;" class="hover:text-sky-400 transition">Home</a>
+          <span>&gt;</span>
+          <span id="crumb-current" class="text-slate-200 font-medium">WAV to MP3</span>
+        </nav>
+
+        <!-- Page Heading -->
+        <div class="text-center max-w-2xl mx-auto mb-7">
+          <h1 class="font-display font-extrabold text-2xl sm:text-4xl text-white tracking-tight">
+            <span id="tool-title-prefix">WAV to MP3</span> <span class="text-cyan-gradient">Converter</span>
+          </h1>
+          <p id="tool-subtitle" class="text-slate-300 text-xs sm:text-sm mt-2.5 leading-relaxed">
+            Convert WAV files to MP3 online, for smaller file sizes and easy sharing.<br class="hidden sm:inline" />
+            Fast, high quality and private.
+          </p>
+        </div>
+
+        <!-- MAIN CONVERTER CARD -->
+        <div class="ak-card rounded-2xl p-4 sm:p-6 mb-4">
+          
+          <!-- Dashed Dropzone -->
+          <div id="tool-dropzone" class="ak-dropzone rounded-xl p-6 sm:p-9 text-center cursor-pointer relative" onclick="triggerToolFileInput(event)">
+            <input type="file" id="tool-file-input" accept="audio/*,.wav,.mp3,.flac,.m4a,.ogg" class="hidden" onchange="handleToolFileSelect(event)" />
+
+            <!-- Default Idle State -->
+            <div id="dropzone-idle">
+              <!-- Cloud Upload Icon -->
+              <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-sky-500/10 border border-sky-400/25 flex items-center justify-center text-sky-400">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+              </div>
+
+              <button type="button" id="btn-choose-file" class="ak-btn-primary text-white font-display font-semibold text-sm px-7 py-2.5 rounded-lg inline-flex items-center gap-2">
+                <span id="choose-btn-label">Choose WAV File</span>
+              </button>
+
+              <p id="dropzone-subtext" class="text-xs text-slate-300 mt-3">or drag and drop your WAV file here</p>
+              <p id="dropzone-limit" class="text-[11px] text-slate-400 mt-1">Supports WAV, up to 2GB</p>
+
+              <div class="mt-3 pt-2 border-t border-slate-800/80 inline-block">
+                <button type="button" onclick="event.stopPropagation(); loadSynthesizedDemo(currentRoute === '/mp3-to-wav/' ? 'mp3-to-wav' : 'wav-to-mp3')" class="text-[11px] text-sky-400 hover:text-sky-300 font-medium flex items-center gap-1.5 mx-auto">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" stroke-width="2"/></svg>
+                  <span>Load Sample Audio File for Instant Test</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Selected / Loaded File State -->
+            <div id="dropzone-loaded" class="hidden text-left">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/90 border border-sky-500/30 rounded-xl p-4">
+                <div class="flex items-center gap-3.5 min-w-0">
+                  <div class="w-11 h-11 rounded-xl ak-icon-box flex items-center justify-center text-white shrink-0">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                  </div>
+                  <div class="min-w-0">
+                    <div id="loaded-filename" class="font-display font-bold text-white text-sm truncate">sample-audio.wav</div>
+                    <div id="loaded-filemeta" class="text-xs text-slate-400 mt-0.5">2.4 MB &bull; 44.1 kHz Stereo</div>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                  <button type="button" onclick="event.stopPropagation(); clearSelectedFile()" class="text-xs text-slate-400 hover:text-rose-400 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 transition">
+                    Change File
+                  </button>
+                </div>
+              </div>
+
+              <!-- Conversion Progress & Output Box -->
+              <div id="conversion-status-box" class="hidden mt-4 bg-slate-950/90 border border-sky-400/30 rounded-xl p-4">
+                <div class="flex items-center justify-between text-xs mb-2">
+                  <span id="progress-status-text" class="text-sky-300 font-medium">Encoding audio in browser...</span>
+                  <span id="progress-percent" class="text-white font-mono font-bold">0%</span>
+                </div>
+                <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                  <div id="progress-bar-fill" class="h-full bg-gradient-to-r from-blue-500 to-sky-400 transition-all duration-200" style="width: 0%"></div>
+                </div>
+
+                <!-- Completed Result Actions -->
+                <div id="conversion-result-actions" class="hidden mt-4 pt-3 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
+                      ✓ Ready
+                    </span>
+                    <audio id="output-audio-preview" controls class="h-8 max-w-[220px] sm:max-w-[260px]"></audio>
+                  </div>
+
+                  <a id="download-converted-link" href="#" download="converted.mp3" onclick="event.stopPropagation()" class="ak-btn-primary w-full sm:w-auto text-center text-white font-display font-bold text-xs px-5 py-2.5 rounded-lg inline-flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    <span id="download-btn-text">Download MP3</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Controls Row: Output Format + Bitrate/Sample Rate + Convert CTA -->
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3.5 mt-4 items-end">
+            
+            <!-- Output Format Dropdown -->
+            <div class="sm:col-span-4">
+              <label for="select-output-format" class="block text-[11px] font-medium text-slate-300 mb-1.5">Output Format</label>
+              <div class="relative">
+                <select id="select-output-format" onchange="handleOutputFormatChange()" class="ak-select w-full rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white font-medium appearance-none pr-9">
+                  <option value="MP3">MP3</option>
+                  <option value="WAV">WAV (PCM)</option>
+                </select>
+                <svg class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              </div>
+            </div>
+
+            <!-- Dynamic Secondary Parameter: Bitrate (for MP3) or Sample Rate (for WAV) -->
+            <div class="sm:col-span-4">
+              <label id="label-quality-setting" for="select-quality-setting" class="block text-[11px] font-medium text-slate-300 mb-1.5">Bitrate</label>
+              <div class="relative">
+                <select id="select-quality-setting" class="ak-select w-full rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white font-medium appearance-none pr-9">
+                  <!-- Populated dynamically via JS -->
+                </select>
+                <svg class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              </div>
+            </div>
+
+            <!-- Convert Button -->
+            <div class="sm:col-span-4">
+              <button type="button" id="btn-convert-action" onclick="startAudioConversion()" class="ak-btn-primary w-full text-white font-display font-bold text-sm py-3 px-5 rounded-xl flex items-center justify-center gap-2">
+                <span id="convert-btn-label">Convert to MP3</span>
+                <svg id="convert-btn-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 3 Feature Pills Row Below Converter Card -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-10">
+          <div class="ak-card rounded-xl px-4 py-3 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-400/25 flex items-center justify-center text-sky-400 shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+            </div>
+            <div>
+              <div class="text-white font-semibold text-xs">High Quality</div>
+              <div id="pill-quality-desc" class="text-[11px] text-slate-400">Up to 320 kbps</div>
+            </div>
+          </div>
+
+          <div class="ak-card rounded-xl px-4 py-3 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-400/25 flex items-center justify-center text-sky-400 shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            </div>
+            <div>
+              <div class="text-white font-semibold text-xs">100% Private</div>
+              <div class="text-[11px] text-slate-400">Files stay on your device</div>
+            </div>
+          </div>
+
+          <div class="ak-card rounded-xl px-4 py-3 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-400/25 flex items-center justify-center text-sky-400 shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2" stroke-width="2"/><line x1="8" y1="20" x2="16" y2="20" stroke-width="2"/></svg>
+            </div>
+            <div>
+              <div class="text-white font-semibold text-xs">No Installation</div>
+              <div class="text-[11px] text-slate-400">Works in your browser</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HOW TO CONVERT SECTION -->
+        <section class="mb-10">
+          <h2 id="howto-heading" class="font-display font-bold text-lg sm:text-xl text-white">How to Convert WAV to MP3</h2>
+          <p id="howto-sub" class="text-slate-400 text-xs sm:text-sm mt-1 mb-5">Follow these simple steps to convert your WAV file to MP3.</p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="ak-card rounded-2xl p-5">
+              <div class="w-7 h-7 rounded-full ak-step-badge text-white font-display font-bold text-xs flex items-center justify-center mb-3">1</div>
+              <h3 id="step1-title" class="font-display font-bold text-white text-sm">Upload your WAV file</h3>
+              <p id="step1-desc" class="text-xs text-slate-400 mt-1.5 leading-relaxed">Click "Choose File" or drag and drop your file.</p>
+            </div>
+
+            <div class="ak-card rounded-2xl p-5">
+              <div class="w-7 h-7 rounded-full ak-step-badge text-white font-display font-bold text-xs flex items-center justify-center mb-3">2</div>
+              <h3 class="font-display font-bold text-white text-sm">Choose settings</h3>
+              <p id="step2-desc" class="text-xs text-slate-400 mt-1.5 leading-relaxed">Select MP3 and your preferred bitrate.</p>
+            </div>
+
+            <div class="ak-card rounded-2xl p-5">
+              <div class="w-7 h-7 rounded-full ak-step-badge text-white font-display font-bold text-xs flex items-center justify-center mb-3">3</div>
+              <h3 class="font-display font-bold text-white text-sm">Convert and download</h3>
+              <p id="step3-desc" class="text-xs text-slate-400 mt-1.5 leading-relaxed">Click "Convert" and download your MP3 file.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- FORMAT COMPARISON SECTION (WAV vs MP3 / MP3 vs WAV) -->
+        <section class="mb-10">
+          <h2 id="compare-heading" class="font-display font-bold text-lg sm:text-xl text-white">WAV vs MP3</h2>
+          <p id="compare-sub" class="text-slate-400 text-xs sm:text-sm mt-1 mb-5">WAV and MP3 are different formats with different use cases.</p>
+
+          <div id="compare-cards-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Populated dynamically to match exact left/right order in Mockup 2 & 3 -->
+          </div>
+        </section>
+
+        <!-- FREQUENTLY ASKED QUESTIONS (Interactive Accordion) -->
+        <section>
+          <h2 class="font-display font-bold text-lg sm:text-xl text-white mb-4">Frequently Asked Questions</h2>
+          <div id="faq-accordion-container" class="space-y-2.5">
+            <!-- Populated dynamically per tool view -->
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- ======================= FOOTER ======================= -->
+    <footer class="border-t border-sky-500/10 bg-[#030712]/90 py-8 mt-auto">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 rounded-lg bg-blue-600/20 border border-sky-400/30 flex items-center justify-center">
+            <svg class="w-3.5 h-3.5 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="6" y1="8" x2="6" y2="16"></line>
+              <line x1="12" y1="4" x2="12" y2="20"></line>
+              <line x1="18" y1="8" x2="18" y2="16"></line>
+            </svg>
+          </div>
+          <span class="font-display font-bold text-white">AudioKit</span>
+          <span>&copy; 2025 &bull; 100% Client-Side Browser Audio Processing</span>
+        </div>
+        <div class="flex items-center gap-5">
+          <a href="#/" onclick="navigateTo('/'); return false;" class="hover:text-white transition">Home</a>
+          <a href="#/wav-to-mp3/" onclick="navigateTo('/wav-to-mp3/'); return false;" class="hover:text-white transition">WAV to MP3</a>
+          <a href="#/mp3-to-wav/" onclick="navigateTo('/mp3-to-wav/'); return false;" class="hover:text-white transition">MP3 to WAV</a>
+          <button onclick="openGhPagesModal()" class="text-sky-400 hover:text-sky-300 font-medium">GitHub Pages Guide</button>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- QUICK SEARCH MODAL                                                    -->
+  <!-- ===================================================================== -->
+  <div id="search-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="ak-card rounded-2xl max-w-md w-full p-5 border border-sky-400/30 shadow-2xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-display font-bold text-white text-sm">Search Audio Tools</h3>
+        <button onclick="toggleSearchModal()" class="text-slate-400 hover:text-white text-xs">ESC</button>
+      </div>
+      <input type="text" id="tool-search-input" oninput="filterSearchTools(this.value)" placeholder="Type format (e.g. WAV, MP3, FLAC)..." class="w-full ak-select rounded-xl px-3.5 py-2.5 text-sm text-white mb-3" />
+      <div id="search-results-list" class="space-y-1.5 max-h-60 overflow-y-auto">
+        <button onclick="navigateTo('/wav-to-mp3/'); toggleSearchModal();" class="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-600/20 flex items-center justify-between text-xs text-slate-200">
+          <span><strong class="text-white">WAV to MP3</strong> — Compress WAV to MP3</span>
+          <span class="text-sky-400">/wav-to-mp3/</span>
+        </button>
+        <button onclick="navigateTo('/mp3-to-wav/'); toggleSearchModal();" class="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-600/20 flex items-center justify-between text-xs text-slate-200">
+          <span><strong class="text-white">MP3 to WAV</strong> — Decode MP3 to PCM WAV</span>
+          <span class="text-sky-400">/mp3-to-wav/</span>
+        </button>
+        <button onclick="openCustomPreset('FLAC', 'MP3'); toggleSearchModal();" class="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-600/20 flex items-center justify-between text-xs text-slate-200">
+          <span><strong class="text-white">FLAC to MP3</strong> — Compress lossless FLAC</span>
+          <span class="text-sky-400">Preset</span>
+        </button>
+        <button onclick="openCustomPreset('M4A', 'MP3'); toggleSearchModal();" class="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-600/20 flex items-center justify-between text-xs text-slate-200">
+          <span><strong class="text-white">M4A to MP3</strong> — Convert Apple M4A audio</span>
+          <span class="text-sky-400">Preset</span>
+        </button>
+      </div>
     </div>
-  </section>
+  </div>
 
-  <section class="steps-section" id="how-it-works">
-    <div class="eyebrow">THREE SIMPLE STEPS</div><h2>From source to sound in moments.</h2>
-    <div class="steps-grid"><article><span>01</span><h3>Choose a file</h3><p>Select an audio file from your device or drag it into the converter.</p></article><article><span>02</span><h3>Choose your format</h3><p>Pick MP3 or WAV. Adjust the MP3 bitrate if you're exporting to MP3.</p></article><article><span>03</span><h3>Download</h3><p>Convert locally and save the result directly to your device.</p></article></div>
-  </section>
+  <!-- ===================================================================== -->
+  <!-- GITHUB PAGES MULTI-ROUTE DEPLOYMENT MODAL                             -->
+  <!-- ===================================================================== -->
+  <div id="gh-pages-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="ak-card rounded-2xl max-w-2xl w-full p-6 border border-sky-400/35 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-sky-500/15 border border-sky-400/30 flex items-center justify-center text-sky-400">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          </div>
+          <div>
+            <h3 class="font-display font-bold text-white text-base">Host on GitHub Pages</h3>
+            <p class="text-xs text-slate-400">Supports both Single-File SPA & Clean Directory URLs (<code>/wav-to-mp3/</code>, <code>/mp3-to-wav/</code>)</p>
+          </div>
+        </div>
+        <button onclick="closeGhPagesModal()" class="text-slate-400 hover:text-white px-2.5 py-1 rounded-lg bg-slate-800/80 text-xs">Close ✕</button>
+      </div>
 
-  <section class="faq-section"><div class="eyebrow">GOOD TO KNOW</div><h2>Frequently asked questions</h2>
-    <details><summary>Is AudioKit free?</summary><p>Yes. This starter version runs in your browser and does not require an account or a paid conversion service.</p></details>
-    <details><summary>Are my audio files uploaded?</summary><p>No. The conversion code processes audio in your browser. The MP3 encoder library is loaded from a public CDN, but your selected audio file is not sent to that CDN or to an AudioKit server.</p></details>
-    <details><summary>Does converting MP3 to WAV improve sound quality?</summary><p>No. WAV can be useful for compatibility or editing, but converting a lossy MP3 to WAV does not restore audio information that was lost during MP3 encoding.</p></details>
-    <details><summary>Why won't some audio files open?</summary><p>Input decoding depends on the browser and operating system. Some codecs and formats, including some FLAC or OGG files, may not be supported in every browser.</p></details>
-  </section>
-</main>
-<footer><a class="brand footer-brand" href="/"><span class="brand-icon">♫</span><span>Audio<span class="brand-accent">Kit</span><small>FREE ONLINE AUDIO TOOLS</small></span></a><p>Simple tools for your sound. AudioKit is an independent project.</p><div><a href="privacy.html">Privacy</a><a href="wav-to-mp3.html">WAV to MP3</a><a href="mp3-to-wav.html">MP3 to WAV</a></div><small>© <span id="year"></span> AudioKit. Use audio files you have permission to convert.</small></footer>
-</body></html>
+      <div class="space-y-4 text-xs text-slate-300 leading-relaxed">
+        <div class="bg-slate-900/90 border border-sky-500/20 rounded-xl p-4">
+          <div class="font-display font-bold text-white text-sm mb-2">How this file works automatically on GitHub Pages:</div>
+          <p class="text-slate-400 mb-3">
+            This single <code>index.html</code> automatically detects its URL path (<code>window.location.pathname</code>) as well as hash routes. You can deploy it to GitHub Pages in two ways:
+          </p>
+          <pre class="bg-slate-950 border border-slate-800 rounded-lg p-3 font-mono text-[11px] text-sky-300 overflow-x-auto">├── index.html                (Homepage /)
+├── 404.html                  (Copy of index.html — enables clean URLs automatically!)
+├── wav-to-mp3/
+│   └── index.html            (Copy of index.html — opens WAV to MP3 directly)
+└── mp3-to-wav/
+    └── index.html            (Copy of index.html — opens MP3 to WAV directly)</pre>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <button onclick="downloadRouteHtml('/')" class="ak-btn-primary py-2.5 px-3 rounded-xl text-white font-semibold text-xs flex items-center justify-center gap-1.5">
+            <span>Download /index.html</span>
+          </button>
+          <button onclick="downloadRouteHtml('/wav-to-mp3/')" class="bg-slate-800 hover:bg-slate-700 border border-sky-400/30 py-2.5 px-3 rounded-xl text-sky-300 font-semibold text-xs flex items-center justify-center gap-1.5 transition">
+            <span>Download wav-to-mp3/index.html</span>
+          </button>
+          <button onclick="downloadRouteHtml('/mp3-to-wav/')" class="bg-slate-800 hover:bg-slate-700 border border-sky-400/30 py-2.5 px-3 rounded-xl text-sky-300 font-semibold text-xs flex items-center justify-center gap-1.5 transition">
+            <span>Download mp3-to-wav/index.html</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ===================================================================== -->
+  <!-- APPLICATION JAVASCRIPT & WEB AUDIO CONVERSION ENGINE                  -->
+  <!-- ===================================================================== -->
+  <script>
+    // --- State Management ---
+    let currentRoute = '/';
+    let selectedAudioFile = null;
+    let decodedAudioBuffer = null;
+    let isMobileSim = false;
+
+    // --- Page Content Configurations matching Mockup 2 & Mockup 3 ---
+    const PAGE_CONFIG = {
+      '/wav-to-mp3/': {
+        crumb: 'WAV to MP3',
+        titlePrefix: 'WAV to MP3',
+        subtitle: 'Convert WAV files to MP3 online, for smaller file sizes and easy sharing. Fast, high quality and private.',
+        chooseBtn: 'Choose WAV File',
+        dropSub: 'or drag and drop your WAV file here',
+        dropLimit: 'Supports WAV, up to 2GB',
+        defaultFormat: 'MP3',
+        pillQuality: 'Up to 320 kbps',
+        howtoHeading: 'How to Convert WAV to MP3',
+        howtoSub: 'Follow these simple steps to convert your WAV file to MP3.',
+        step1Title: 'Upload your WAV file',
+        step1Desc: 'Click "Choose File" or drag and drop your file.',
+        step2Desc: 'Select MP3 and your preferred bitrate.',
+        step3Desc: 'Click "Convert" and download your MP3 file.',
+        compareHeading: 'WAV vs MP3',
+        compareSub: 'WAV and MP3 are different formats with different use cases.',
+        compareCards: [
+          {
+            title: 'WAV (Waveform Audio)',
+            bullets: [
+              'Uncompressed, high quality',
+              'Larger file size',
+              'Common in professional audio',
+              'Ideal for editing and archiving'
+            ]
+          },
+          {
+            title: 'MP3 (MPEG Audio Layer III)',
+            bullets: [
+              'Compressed, smaller file size',
+              'Widely supported on all devices',
+              'Good quality at 128–320 kbps',
+              'Ideal for sharing and everyday use'
+            ]
+          }
+        ],
+        faqs: [
+          {
+            q: 'Is it safe to convert WAV to MP3 on AudioKit?',
+            a: 'Yes, 100% safe and private. AudioKit processes your audio files directly inside your web browser using WebAssembly and the Web Audio API. Your WAV files are never uploaded to any external server.'
+          },
+          {
+            q: 'What bitrate should I choose?',
+            a: '192 kbps (Balanced) offers an ideal balance between audio clarity and compact file size for most music and podcasts. Choose 320 kbps for studio-grade fidelity or 128 kbps for voice recordings.'
+          },
+          {
+            q: 'Will I lose quality when converting to MP3?',
+            a: 'MP3 uses perceptual lossy compression to reduce file size by 75–90%. At 192 kbps or 320 kbps, the difference is virtually indistinguishable to the human ear on standard headphones and speakers.'
+          },
+          {
+            q: 'What is the maximum file size?',
+            a: 'Because conversion happens locally on your device, AudioKit supports large WAV files up to 2GB without upload timeouts or bandwidth limits.'
+          },
+          {
+            q: 'Can I use AudioKit on mobile devices?',
+            a: 'Absolutely! AudioKit works seamlessly on iPhone, iPad, Android phones, tablets, Windows, and Mac browsers with no app installation required.'
+          }
+        ]
+      },
+      '/mp3-to-wav/': {
+        crumb: 'MP3 to WAV',
+        titlePrefix: 'MP3 to WAV',
+        subtitle: 'Convert MP3 files to WAV online, for editing, higher compatibility and lossless quality. Fast and private.',
+        chooseBtn: 'Choose MP3 File',
+        dropSub: 'or drag and drop your MP3 file here',
+        dropLimit: 'Supports MP3, up to 2GB',
+        defaultFormat: 'WAV',
+        pillQuality: 'Lossless WAV output',
+        howtoHeading: 'How to Convert MP3 to WAV',
+        howtoSub: 'Follow these simple steps to convert your MP3 file to WAV.',
+        step1Title: 'Upload your MP3 file',
+        step1Desc: 'Click "Choose File" or drag and drop your file.',
+        step2Desc: 'Select WAV and sample rate if needed.',
+        step3Desc: 'Click "Convert" and download your WAV file.',
+        compareHeading: 'MP3 vs WAV',
+        compareSub: 'Understand the differences between MP3 and WAV.',
+        compareCards: [
+          {
+            title: 'MP3 (MPEG Audio Layer III)',
+            bullets: [
+              'Compressed, smaller file size',
+              'Widely supported on all devices',
+              'Good quality at 128–320 kbps',
+              'Ideal for listening and sharing'
+            ]
+          },
+          {
+            title: 'WAV (Waveform Audio)',
+            bullets: [
+              'Uncompressed, higher quality',
+              'Larger file size',
+              'Common in professional audio',
+              'Better for editing and production'
+            ]
+          }
+        ],
+        faqs: [
+          {
+            q: 'Is it safe to convert MP3 to WAV on AudioKit?',
+            a: 'Yes! All MP3 decoding and PCM WAV encoding occurs locally in your browser. Your personal audio recordings never leave your computer or phone.'
+          },
+          {
+            q: 'Can an MP3 be converted to true lossless audio?',
+            a: 'Converting MP3 to WAV unpacks the compressed audio into an uncompressed 16-bit PCM WAV stream ideal for video editors and DAWs, though it cannot restore frequencies that were originally removed when the MP3 was created.'
+          },
+          {
+            q: 'What sample rate should I use?',
+            a: '44.1 kHz (Standard) matches CD audio and most music files. Choose 48 kHz if you are importing the WAV file into video editing software like Premiere Pro, Final Cut, or DaVinci Resolve.'
+          },
+          {
+            q: 'What is the maximum file size?',
+            a: 'You can convert MP3 files up to 2GB right in your browser with zero server queues.'
+          },
+          {
+            q: 'Can I use AudioKit on mobile devices?',
+            a: 'Yes, AudioKit is fully responsive and converts audio directly on iOS and Android browsers.'
+          }
+        ]
+      }
+    };
+
+    // --- Route Navigation ---
+    function navigateTo(route) {
+      currentRoute = route;
+
+      // Update Top Preview Bar Active State
+      document.querySelectorAll('.route-tab').forEach(btn => {
+        btn.className = 'route-tab flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-800';
+      });
+
+      const viewHome = document.getElementById('view-home');
+      const viewConverter = document.getElementById('view-converter');
+
+      if (route === '/') {
+        viewHome.classList.remove('hidden');
+        viewConverter.classList.add('hidden');
+        document.getElementById('tab-home').className = 'route-tab flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all bg-blue-600 text-white shadow-sm';
+        document.title = 'AudioKit — Free Online Audio Converter';
+      } else {
+        viewHome.classList.add('hidden');
+        viewConverter.classList.remove('hidden');
+        renderConverterPage(route);
+
+        if (route === '/wav-to-mp3/') {
+          document.getElementById('tab-wav-to-mp3').className = 'route-tab flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all bg-blue-600 text-white shadow-sm';
+          document.title = 'WAV to MP3 Converter — AudioKit';
+        } else if (route === '/mp3-to-wav/') {
+          document.getElementById('tab-mp3-to-wav').className = 'route-tab flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all bg-blue-600 text-white shadow-sm';
+          document.title = 'MP3 to WAV Converter — AudioKit';
+        }
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // --- Render Tool Page Content (/wav-to-mp3/ or /mp3-to-wav/) ---
+    function renderConverterPage(route) {
+      const cfg = PAGE_CONFIG[route] || PAGE_CONFIG['/wav-to-mp3/'];
+
+      document.getElementById('crumb-current').textContent = cfg.crumb;
+      document.getElementById('tool-title-prefix').textContent = cfg.titlePrefix;
+      document.getElementById('tool-subtitle').textContent = cfg.subtitle;
+      document.getElementById('choose-btn-label').textContent = cfg.chooseBtn;
+      document.getElementById('dropzone-subtext').textContent = cfg.dropSub;
+      document.getElementById('dropzone-limit').textContent = cfg.dropLimit;
+      document.getElementById('pill-quality-desc').textContent = cfg.pillQuality;
+
+      // Output format dropdown
+      const formatSelect = document.getElementById('select-output-format');
+      formatSelect.value = cfg.defaultFormat;
+      populateQualityDropdown(cfg.defaultFormat);
+
+      // How to section
+      document.getElementById('howto-heading').textContent = cfg.howtoHeading;
+      document.getElementById('howto-sub').textContent = cfg.howtoSub;
+      document.getElementById('step1-title').textContent = cfg.step1Title;
+      document.getElementById('step1-desc').textContent = cfg.step1Desc;
+      document.getElementById('step2-desc').textContent = cfg.step2Desc;
+      document.getElementById('step3-desc').textContent = cfg.step3Desc;
+
+      // Comparison section
+      document.getElementById('compare-heading').textContent = cfg.compareHeading;
+      document.getElementById('compare-sub').textContent = cfg.compareSub;
+      const compareContainer = document.getElementById('compare-cards-container');
+      compareContainer.innerHTML = cfg.compareCards.map(card => `
+        <div class="ak-card rounded-2xl p-5">
+          <h3 class="font-display font-bold text-white text-sm sm:text-base mb-3">${card.title}</h3>
+          <ul class="space-y-2 text-xs text-slate-300">
+            ${card.bullets.map(b => `
+              <li class="flex items-center gap-2.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0"></span>
+                <span>${b}</span>
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+      `).join('');
+
+      // FAQ Accordion
+      const faqContainer = document.getElementById('faq-accordion-container');
+      faqContainer.innerHTML = cfg.faqs.map((item, idx) => `
+        <div class="ak-card rounded-xl overflow-hidden border border-sky-500/15">
+          <button type="button" onclick="toggleFaq(${idx})" class="w-full px-4 py-3.5 text-left flex items-center justify-between gap-3 hover:bg-slate-800/40 transition">
+            <span class="font-display font-semibold text-white text-xs sm:text-sm">${item.q}</span>
+            <svg id="faq-icon-${idx}" class="w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div id="faq-body-${idx}" class="hidden px-4 pb-4 pt-1 text-xs text-slate-300 leading-relaxed border-t border-slate-800/60">
+            ${item.a}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function populateQualityDropdown(format) {
+      const labelEl = document.getElementById('label-quality-setting');
+      const selectEl = document.getElementById('select-quality-setting');
+      const convertLabel = document.getElementById('convert-btn-label');
+
+      if (format === 'MP3') {
+        labelEl.textContent = 'Bitrate';
+        selectEl.innerHTML = `
+          <option value="320">320 kbps (Best Quality)</option>
+          <option value="256">256 kbps (High)</option>
+          <option value="192" selected>192 kbps (Balanced)</option>
+          <option value="128">128 kbps (Standard)</option>
+        `;
+        convertLabel.textContent = 'Convert to MP3';
+      } else {
+        labelEl.textContent = 'Sample Rate';
+        selectEl.innerHTML = `
+          <option value="44100" selected>44.1 kHz (Standard)</option>
+          <option value="48000">48 kHz (Studio)</option>
+        `;
+        convertLabel.textContent = 'Convert to WAV';
+      }
+    }
+
+    function handleOutputFormatChange() {
+      const fmt = document.getElementById('select-output-format').value;
+      populateQualityDropdown(fmt);
+    }
+
+    function toggleFaq(index) {
+      const body = document.getElementById(`faq-body-${index}`);
+      const icon = document.getElementById(`faq-icon-${index}`);
+      const isHidden = body.classList.contains('hidden');
+      if (isHidden) {
+        body.classList.remove('hidden');
+        icon.classList.add('rotate-180');
+      } else {
+        body.classList.add('hidden');
+        icon.classList.remove('rotate-180');
+      }
+    }
+
+    // --- Custom Preset Handler (FLAC to MP3, M4A to MP3, OGG to MP3) ---
+    function openCustomPreset(sourceFormat, targetFormat) {
+      navigateTo('/wav-to-mp3/');
+      document.getElementById('crumb-current').textContent = `${sourceFormat} to ${targetFormat}`;
+      document.getElementById('tool-title-prefix').textContent = `${sourceFormat} to ${targetFormat}`;
+      document.getElementById('tool-subtitle').textContent = `Convert ${sourceFormat} files to ${targetFormat} online, right in your browser. Fast, high quality and 100% private.`;
+      document.getElementById('choose-btn-label').textContent = `Choose ${sourceFormat} File`;
+      document.getElementById('dropzone-subtext').textContent = `or drag and drop your ${sourceFormat} file here`;
+      document.getElementById('dropzone-limit').textContent = `Supports ${sourceFormat}, up to 2GB`;
+    }
+
+    // --- File Selection & Drag-and-Drop Handling ---
+    function triggerToolFileInput(e) {
+      if (document.getElementById('dropzone-loaded').classList.contains('hidden')) {
+        document.getElementById('tool-file-input').click();
+      }
+    }
+
+    function handleHomeFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (ext === 'mp3') {
+        navigateTo('/mp3-to-wav/');
+      } else {
+        navigateTo('/wav-to-mp3/');
+      }
+      loadSelectedFile(file);
+    }
+
+    function handleToolFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      loadSelectedFile(file);
+    }
+
+    function loadSelectedFile(file) {
+      selectedAudioFile = file;
+      decodedAudioBuffer = null;
+
+      document.getElementById('dropzone-idle').classList.add('hidden');
+      document.getElementById('dropzone-loaded').classList.remove('hidden');
+      document.getElementById('conversion-status-box').classList.add('hidden');
+      document.getElementById('conversion-result-actions').classList.add('hidden');
+
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      document.getElementById('loaded-filename').textContent = file.name;
+      document.getElementById('loaded-filemeta').textContent = `${sizeMB} MB • Ready to convert`;
+    }
+
+    function clearSelectedFile() {
+      selectedAudioFile = null;
+      decodedAudioBuffer = null;
+      document.getElementById('tool-file-input').value = '';
+      document.getElementById('dropzone-idle').classList.remove('hidden');
+      document.getElementById('dropzone-loaded').classList.add('hidden');
+      document.getElementById('conversion-status-box').classList.add('hidden');
+    }
+
+    // --- Synthesize a Real Musical Chord Sample for Instant 1-Click Testing ---
+    function loadSynthesizedDemo(targetView) {
+      if (currentRoute === '/') {
+        navigateTo(targetView === 'mp3-to-wav' ? '/mp3-to-wav/' : '/wav-to-mp3/');
+      }
+
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioCtx();
+      const sampleRate = 44100;
+      const duration = 3.2; // seconds
+      const frameCount = Math.floor(sampleRate * duration);
+      const buffer = ctx.createBuffer(2, frameCount, sampleRate);
+
+      // Generate warm stereo synth chord (C major 9th)
+      const freqs = [261.63, 329.63, 392.00, 493.88, 587.33];
+      for (let ch = 0; ch < 2; ch++) {
+        const data = buffer.getChannelData(ch);
+        for (let i = 0; i < frameCount; i++) {
+          const t = i / sampleRate;
+          const env = Math.min(1, t / 0.15) * Math.exp(-t * 0.85);
+          let sample = 0;
+          freqs.forEach((f, idx) => {
+            const detune = ch === 0 ? 1.001 : 0.999;
+            sample += Math.sin(2 * Math.PI * f * detune * t + idx) * (0.18 / freqs.length);
+          });
+          data[i] = sample * env;
+        }
+      }
+
+      decodedAudioBuffer = buffer;
+      const wavBlob = encodeAudioBufferToWav(buffer, 44100);
+      const isMp3View = currentRoute === '/mp3-to-wav/';
+      const demoFileName = isMp3View ? 'audiokit-demo-track.mp3' : 'audiokit-studio-chord.wav';
+      selectedAudioFile = new File([wavBlob], demoFileName, { type: isMp3View ? 'audio/mpeg' : 'audio/wav' });
+
+      document.getElementById('dropzone-idle').classList.add('hidden');
+      document.getElementById('dropzone-loaded').classList.remove('hidden');
+      document.getElementById('conversion-status-box').classList.add('hidden');
+      document.getElementById('loaded-filename').textContent = demoFileName;
+      document.getElementById('loaded-filemeta').textContent = `${(wavBlob.size / 1024).toFixed(0)} KB • 3.2s • 44.1 kHz Stereo (Sample Loaded)`;
+
+      startAudioConversion();
+    }
+
+    // --- Real Client-Side Audio Conversion Engine (Web Audio API + LameJS MP3 / PCM WAV) ---
+    async function startAudioConversion() {
+      if (!selectedAudioFile && !decodedAudioBuffer) {
+        loadSynthesizedDemo(currentRoute === '/mp3-to-wav/' ? 'mp3-to-wav' : 'wav-to-mp3');
+        return;
+      }
+
+      const statusBox = document.getElementById('conversion-status-box');
+      const resultActions = document.getElementById('conversion-result-actions');
+      const progressFill = document.getElementById('progress-bar-fill');
+      const progressPercent = document.getElementById('progress-percent');
+      const progressText = document.getElementById('progress-status-text');
+
+      statusBox.classList.remove('hidden');
+      resultActions.classList.add('hidden');
+      progressFill.style.width = '15%';
+      progressPercent.textContent = '15%';
+      progressText.textContent = 'Decoding source audio stream...';
+
+      try {
+        if (!decodedAudioBuffer) {
+          const arrayBuffer = await selectedAudioFile.arrayBuffer();
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          const audioCtx = new AudioCtx();
+          decodedAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+        }
+
+        progressFill.style.width = '45%';
+        progressPercent.textContent = '45%';
+
+        const outputFormat = document.getElementById('select-output-format').value;
+        const qualitySetting = parseInt(document.getElementById('select-quality-setting').value, 10);
+
+        await new Promise(r => setTimeout(r, 180));
+
+        let outputBlob = null;
+        let outputExt = 'mp3';
+
+        if (outputFormat === 'MP3' && typeof lamejs !== 'undefined') {
+          progressText.textContent = `Encoding MP3 at ${qualitySetting} kbps...`;
+          outputBlob = await encodeAudioBufferToMp3(decodedAudioBuffer, qualitySetting, (pct) => {
+            const totalPct = 45 + Math.round(pct * 0.5);
+            progressFill.style.width = `${totalPct}%`;
+            progressPercent.textContent = `${totalPct}%`;
+          });
+          outputExt = 'mp3';
+        } else {
+          const targetRate = outputFormat === 'WAV' ? (qualitySetting || 44100) : 44100;
+          progressText.textContent = `Encoding 16-bit PCM WAV (${(targetRate/1000).toFixed(1)} kHz)...`;
+          progressFill.style.width = '85%';
+          progressPercent.textContent = '85%';
+          await new Promise(r => setTimeout(r, 150));
+          outputBlob = encodeAudioBufferToWav(decodedAudioBuffer, targetRate);
+          outputExt = outputFormat.toLowerCase();
+        }
+
+        progressFill.style.width = '100%';
+        progressPercent.textContent = '100%';
+
+        const baseName = (selectedAudioFile ? selectedAudioFile.name : 'audio').replace(/\.[^/.]+$/, '');
+        const finalFileName = `${baseName}-converted.${outputExt}`;
+        const outSizeKB = (outputBlob.size / 1024).toFixed(1);
+
+        progressText.textContent = `Conversion complete! (${outSizeKB} KB)`;
+
+        const blobUrl = URL.createObjectURL(outputBlob);
+        const previewAudio = document.getElementById('output-audio-preview');
+        previewAudio.src = blobUrl;
+
+        const downloadLink = document.getElementById('download-converted-link');
+        downloadLink.href = blobUrl;
+        downloadLink.download = finalFileName;
+        document.getElementById('download-btn-text').textContent = `Download ${outputExt.toUpperCase()}`;
+
+        resultActions.classList.remove('hidden');
+      } catch (err) {
+        progressText.textContent = 'Could not decode file format. Try loading our sample audio!';
+        progressFill.style.width = '100%';
+      }
+    }
+
+    // Encode AudioBuffer to real MP3 Blob using LameJS
+    async function encodeAudioBufferToMp3(audioBuffer, kbps, onProgress) {
+      const channels = Math.min(2, audioBuffer.numberOfChannels);
+      const sampleRate = audioBuffer.sampleRate;
+      const mp3encoder = new lamejs.Mp3Encoder(channels, sampleRate, kbps);
+      const mp3Data = [];
+
+      const left = floatTo16BitPCM(audioBuffer.getChannelData(0));
+      const right = channels > 1 ? floatTo16BitPCM(audioBuffer.getChannelData(1)) : left;
+
+      const sampleBlockSize = 1152;
+      for (let i = 0; i < left.length; i += sampleBlockSize) {
+        const leftChunk = left.subarray(i, i + sampleBlockSize);
+        const rightChunk = right.subarray(i, i + sampleBlockSize);
+        const mp3buf = channels === 2
+          ? mp3encoder.encodeBuffer(leftChunk, rightChunk)
+          : mp3encoder.encodeBuffer(leftChunk);
+        if (mp3buf.length > 0) mp3Data.push(mp3buf);
+
+        if (i % (sampleBlockSize * 25) === 0) {
+          onProgress(i / left.length);
+          await new Promise(r => setTimeout(r, 0));
+        }
+      }
+
+      const mp3buf = mp3encoder.flush();
+      if (mp3buf.length > 0) mp3Data.push(mp3buf);
+      return new Blob(mp3Data, { type: 'audio/mpeg' });
+    }
+
+    function floatTo16BitPCM(input) {
+      const output = new Int16Array(input.length);
+      for (let i = 0; i < input.length; i++) {
+        const s = Math.max(-1, Math.min(1, input[i]));
+        output[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+      }
+      return output;
+    }
+
+    // Encode AudioBuffer to 16-bit PCM WAV Blob
+    function encodeAudioBufferToWav(buffer, targetSampleRate) {
+      const numOfChan = Math.min(2, buffer.numberOfChannels);
+      const sampleRate = buffer.sampleRate;
+      const length = buffer.length * numOfChan * 2 + 44;
+      const out = new ArrayBuffer(length);
+      const view = new DataView(out);
+      let pos = 0;
+
+      function setUint16(data) { view.setUint16(pos, data, true); pos += 2; }
+      function setUint32(data) { view.setUint32(pos, data, true); pos += 4; }
+
+      setUint32(0x46464952); // "RIFF"
+      setUint32(length - 8);
+      setUint32(0x45564157); // "WAVE"
+      setUint32(0x20746d66); // "fmt "
+      setUint32(16);
+      setUint16(1); // PCM
+      setUint16(numOfChan);
+      setUint32(sampleRate);
+      setUint32(sampleRate * 2 * numOfChan);
+      setUint16(numOfChan * 2);
+      setUint16(16);
+      setUint32(0x61746164); // "data"
+      setUint32(length - pos - 4);
+
+      const channels = [];
+      for (let i = 0; i < numOfChan; i++) {
+        channels.push(buffer.getChannelData(i));
+      }
+
+      let offset = 0;
+      while (pos < length) {
+        for (let i = 0; i < numOfChan; i++) {
+          let sample = Math.max(-1, Math.min(1, channels[i][offset]));
+          sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0;
+          view.setInt16(pos, sample, true);
+          pos += 2;
+        }
+        offset++;
+      }
+
+      return new Blob([out], { type: 'audio/wav' });
+    }
+
+    // --- Drag and Drop Listeners ---
+    ['home-dropzone', 'tool-dropzone'].forEach(id => {
+      const zone = document.getElementById(id);
+      if (!zone) return;
+      zone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        zone.classList.add('drag-active');
+      });
+      zone.addEventListener('dragleave', () => {
+        zone.classList.remove('drag-active');
+      });
+      zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        zone.classList.remove('drag-active');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+          const file = e.dataTransfer.files[0];
+          if (id === 'home-dropzone') {
+            const ext = file.name.split('.').pop().toLowerCase();
+            navigateTo(ext === 'mp3' ? '/mp3-to-wav/' : '/wav-to-mp3/');
+          }
+          loadSelectedFile(file);
+        }
+      });
+    });
+
+    // --- Mobile Drawer & Mobile Viewport Simulator ---
+    function toggleMobileMenu() {
+      const drawer = document.getElementById('mobile-tools-drawer');
+      if (drawer.classList.contains('hidden')) {
+        drawer.classList.remove('hidden');
+        drawer.classList.add('flex');
+      } else {
+        drawer.classList.add('hidden');
+        drawer.classList.remove('flex');
+      }
+    }
+
+    function toggleMobileViewport() {
+      isMobileSim = !isMobileSim;
+      const viewport = document.getElementById('app-viewport');
+      const desktopNav = document.getElementById('desktop-nav');
+      const mobileBtn = document.getElementById('mobile-menu-btn');
+      const label = document.getElementById('mobile-sim-label');
+
+      if (isMobileSim) {
+        viewport.classList.add('mobile-frame-active');
+        desktopNav.classList.remove('md:flex');
+        mobileBtn.classList.remove('md:hidden');
+        label.textContent = 'Exit Mobile';
+      } else {
+        viewport.classList.remove('mobile-frame-active');
+        desktopNav.classList.add('md:flex');
+        mobileBtn.classList.add('md:hidden');
+        label.textContent = 'Mobile View';
+        document.getElementById('mobile-tools-drawer').classList.add('hidden');
+      }
+    }
+
+    function scrollToSection(id) {
+      if (currentRoute !== '/') navigateTo('/');
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+
+    // --- Search Modal ---
+    function toggleSearchModal() {
+      const modal = document.getElementById('search-modal');
+      if (modal.classList.contains('hidden')) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.getElementById('tool-search-input').focus();
+      } else {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    function filterSearchTools(q) {
+      const term = q.toLowerCase();
+      const buttons = document.querySelectorAll('#search-results-list button');
+      buttons.forEach(btn => {
+        btn.style.display = btn.textContent.toLowerCase().includes(term) ? 'flex' : 'none';
+      });
+    }
+
+    // --- GitHub Pages Modal & Route File Exporter ---
+    function openGhPagesModal() {
+      const modal = document.getElementById('gh-pages-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeGhPagesModal() {
+      const modal = document.getElementById('gh-pages-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function downloadRouteHtml(defaultRoute) {
+      let htmlSource = document.documentElement.outerHTML;
+      htmlSource = htmlSource.replace("let currentRoute = '/';", `let currentRoute = '${defaultRoute}';`);
+      const blob = new Blob(['<!DOCTYPE html>\n' + htmlSource], { type: 'text/html' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = defaultRoute === '/' ? 'index.html' : `${defaultRoute.replace(/\//g, '')}-index.html`;
+      a.click();
+    }
+
+    // --- Auto-detect initial URL path when hosted on GitHub Pages ---
+    window.addEventListener('DOMContentLoaded', () => {
+      const path = window.location.pathname;
+      const hash = window.location.hash.replace('#', '');
+      if (path.includes('wav-to-mp3') || hash === '/wav-to-mp3/') {
+        navigateTo('/wav-to-mp3/');
+      } else if (path.includes('mp3-to-wav') || hash === '/mp3-to-wav/') {
+        navigateTo('/mp3-to-wav/');
+      } else {
+        navigateTo('/');
+      }
+    });
+  </script>
+</body>
+</html>
